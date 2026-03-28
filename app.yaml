@@ -1,0 +1,13 @@
+runtime: nodejs20
+env: standard
+
+handlers:
+  # Serve all static files with mappings
+  - url: /(.*\..+)$
+    static_files: dist/\1
+    upload: dist/(.*\..+)$
+
+  # Catch-all for React Router/Single Page App
+  - url: /.*
+    static_files: dist/index.html
+    upload: dist/index.html
