@@ -1004,3 +1004,48 @@ dl.gemini-analysis dd { margin: 0; }
 .translation-notice strong {
   color: var(--md-sys-color-primary);
 }
+
+/* ====================================================
+   NEXUS INGEST MODE SELECTOR
+==================================================== */
+.ingest-mode-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem;
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface-variant);
+  border: 1px solid var(--md-sys-color-surface-variant);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.mode-btn:hover {
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-primary);
+}
+
+.mode-btn.active {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  border-color: var(--md-sys-color-primary);
+  box-shadow: var(--md-elevation-1);
+}
+
+@media (max-width: 480px) {
+  .ingest-mode-selector {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

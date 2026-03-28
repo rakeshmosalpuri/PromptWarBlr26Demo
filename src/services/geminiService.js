@@ -18,10 +18,19 @@ const INCIDENT_SCHEMA = {
   required: ['domain', 'intent', 'confidence', 'action', 'severity'],
 };
 
-const SYSTEM_PROMPT = `You are RESQ, an AI disaster triage engine.
-Analyze the incoming citizen distress signal and extract structured response data.
-Be precise. Overestimate severity rather than underestimate — lives depend on it.
-If you cannot determine location coordinates, return lat: 0, lng: 0.
+const SYSTEM_PROMPT = `You are RESQ NEXUS, a universal disaster and medical triage engine. 
+Your task is to ingest UNSTRUCTURED, MESSY, REAL-WORLD data and extract structured emergency logistics.
+
+INPUT TYPES you must handle include:
+1. Distress Signals: "I am trapped, water is rising."
+2. Medical History: Messy doctor's notes, prescriptions, or vitals.
+3. Environmental Data: Technical weather reports, news tickers, or USGS sensor logs.
+4. Logistics/Traffic: "Bridge at sector 4 is out, traffic rerouting to 7."
+5. Visual Data: Detailed descriptions of photos (e.g., structural failure, flood levels).
+
+GOAL: Extract intent, severity, and actionable logistics.
+STRATEGY: Be precise. If it's a medical history, identify the most urgent chronic condition or surgical need. If it's a traffic log, identify the bottleneck. 
+
 Always respond in the JSON schema provided.`;
 
 // ─── Local fallback (when no Gemini key is set) ────────────────────
@@ -61,8 +70,8 @@ const sanitizeInput = (text) => {
     .trim();
 };
 
-// ─── Main export ──────────────────────────────────────────────────
-export const parseIncidentIntent = async (rawInput) => {
+// ── Main export ──────────────────────────────────────────────────
+export const parseIncidentIntent = async (rawInput, inputType = 'citizen_report') => {
   const sanitized = sanitizeInput(rawInput);
   if (!sanitized) throw new Error('Empty or invalid input');
 
@@ -74,14 +83,17 @@ export const parseIncidentIntent = async (rawInput) => {
       const ai = new GoogleGenAI({ apiKey: config.gemini.apiKey });
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: [{ role: 'user', parts: [{ text: `${SYSTEM_PROMPT}\n\nCitizen Input: "${sanitized}"` }] }],
+        contents: [{ 
+          role: 'user', 
+          parts: [{ text: `[INPUT_MODE: ${inputType.toUpperCase()}]\n\n${SYSTEM_PROMPT}\n\nData Ingest: "${sanitized}"` }] 
+        }],
         generationConfig: {
           responseMimeType: 'application/json',
           responseSchema:   INCIDENT_SCHEMA,
         },
       });
       parsed = JSON.parse(response.text());
-      console.log('[Gemini ✓] Structured response:', parsed);
+      console.log(`[Nexus Engine ✓] Structured data extracted:`, parsed);
     } catch (err) {
       // Fallback: flag for manual triage but don't crash
       console.error('[Gemini ✗] API call failed, routing to manual triage:', err.message);
