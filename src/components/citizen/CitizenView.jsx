@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Globe, Mic, ArrowRight, Camera, UploadCloud, CheckCircle2, Languages, PlusSquare, Database, Truck } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Globe, Mic, ArrowRight, Camera, UploadCloud, CheckCircle2, Languages, PlusSquare, Database, Truck, X } from 'lucide-react';
 import { parseIncidentIntent } from '../../services/geminiService';
 import { translateToEnglish, LANGUAGE_NAMES } from '../../services/translateService';
 import config from '../../services/config';
@@ -8,10 +8,12 @@ export default function CitizenView({ onNewIncident }) {
   const [input, setInput]               = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted]       = useState(false);
-  const [fileAttached, setFileAttached] = useState(false);
+  const [fileData, setFileData]         = useState(null); // { name, base64 }
   const [error, setError]               = useState('');
   const [translationInfo, setTranslationInfo] = useState(null);
-  const [ingestMode, setIngestMode]     = useState('citizen'); // citizen, medical, technical, traffic
+  const [ingestMode, setIngestMode]     = useState('citizen');
+
+  const fileInputRef = useRef(null);
 
   const MODES = [
     { id: 'citizen', label: 'Distress',  icon: <Mic size={18}/> },
@@ -20,18 +22,31 @@ export default function CitizenView({ onNewIncident }) {
     { id: 'traffic', label: 'Logistic',  icon: <Truck size={18}/> },
   ];
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFileData({
+        name: file.name,
+        base64: reader.result
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!input.trim() && !fileAttached) return;
+    if (!input.trim() && !fileData) return;
     setError('');
     setTranslationInfo(null);
     setIsSubmitting(true);
 
     try {
-      let textToProcess  = input || '[IMAGE Ingested] Universal sensor data.';
+      let textToProcess  = input || (fileData ? `ANALYSIS REQUEST FOR UPLOADED FILE: ${fileData.name}` : '');
       let langInfo       = null;
 
-      // ── Google Translate ───
       if (config.translate.isConfigured && input.trim()) {
         const { translatedText, detectedLanguage, wasTranslated } = await translateToEnglish(input);
         textToProcess = translatedText;
@@ -39,8 +54,8 @@ export default function CitizenView({ onNewIncident }) {
         if (wasTranslated) setTranslationInfo(langInfo);
       }
 
-      // ── Gemini ────────
-      const parsed = await parseIncidentIntent(textToProcess, ingestMode);
+      // ── Multimodal Gemini Call ──
+      const parsed = await parseIncidentIntent(textToProcess, ingestMode, fileData?.base64);
 
       if (langInfo?.wasTranslated) {
         parsed.language_detected = langInfo.from;
@@ -49,9 +64,12 @@ export default function CitizenView({ onNewIncident }) {
 
       onNewIncident(parsed);
       setSubmitted(true);
-      setTimeout(() => { setSubmitted(false); setInput(''); setFileAttached(false); setTranslationInfo(null); }, 6000);
+      setTimeout(() => { 
+        setSubmitted(false); setInput(''); setFileData(null); setTranslationInfo(null); 
+      }, 6000);
     } catch (err) {
-      setError('Transmission failed. Please try again.');
+      console.error(err);
+      setError(`Transmission failed: ${err.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -91,7 +109,8 @@ export default function CitizenView({ onNewIncident }) {
               <select id="lang-select" defaultValue="auto" aria-label="Select input language">
                 <option value="auto">Auto detect language</option>
                 <option value="hi">हिंदी (Hindi)</option>
-                {/* ... other options same as before ... */}
+                <option value="es">Español (Spanish)</option>
+                <option value="te">తెలుగు (Telugu)</option>
               </select>
             </div>
 
@@ -111,27 +130,49 @@ export default function CitizenView({ onNewIncident }) {
               </div>
             )}
 
+            {fileData && (
+              <div className="attachment-preview live-preview" role="status">
+                <UploadCloud size={16} aria-hidden="true" /> 
+                <span className="file-name">{fileData.name}</span>
+                <button type="button" onClick={() => setFileData(null)} aria-label="Remove attachment">
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+
             {error && <p className="form-error">{error}</p>}
 
             <div className="input-actions-row">
               <div className="left-actions">
-                <button type="button" className="action-btn" onClick={() => setFileAttached(true)} disabled={isSubmitting}>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileChange} 
+                  style={{ display: 'none' }}
+                  accept="image/*,application/pdf,text/plain"
+                />
+                <button 
+                  type="button" 
+                  className={`action-btn ${fileData ? 'has-file' : ''}`} 
+                  onClick={() => fileInputRef.current.click()} 
+                  disabled={isSubmitting}
+                >
                   <Camera size={24} />
                 </button>
                 <button type="button" className="action-btn" disabled={isSubmitting}>
                   <Mic size={24} />
                 </button>
               </div>
-              <button type="submit" className="submit-btn" disabled={isSubmitting || (!input.trim() && !fileAttached)}>
-                {isSubmitting ? 'Processing...' : <><ArrowRight size={24} /> Process {ingestMode === 'citizen' ? 'Alert' : 'Data'}</>}
+              <button type="submit" className="submit-btn" disabled={isSubmitting || (!input.trim() && !fileData)}>
+                {isSubmitting ? 'AI Processing...' : <><ArrowRight size={24} /> Ingest {ingestMode === 'citizen' ? 'Distress' : 'Data'}</>}
               </button>
             </div>
           </form>
         ) : (
           <div className="success-state">
             <CheckCircle2 size={64} className="success-icon" />
-            <h2>Data Ingested</h2>
-            <p>The unstructured data has been resolved into tactical logistics for Command HQ.</p>
+            <h2>Nexus Resolved</h2>
+            <p>Intelligence has been extracted. Actionable logistics updated at Command HQ.</p>
           </div>
         )}
       </div>

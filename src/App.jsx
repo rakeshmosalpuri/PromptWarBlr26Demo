@@ -3,43 +3,78 @@ import CitizenView from './components/citizen/CitizenView';
 import OperatorDashboard from './components/operator/OperatorDashboard';
 import OperatorAuthGate from './components/shared/OperatorAuthGate';
 import ConfigBanner from './components/shared/ConfigBanner';
+import ErrorBoundary from './components/shared/ErrorBoundary';
+import { ToastProvider, useToast } from './components/shared/ToastProvider';
 import { INITIAL_INCIDENTS } from './services/mockData';
 import { subscribeToIncidents, updateIncidentStatus as updateFirestore, isFirebaseConfigured } from './services/firebase';
+import config from './services/config';
 import './index.css';
 
-export default function App() {
+function ApplicationContent() {
   const [view, setView]           = useState('operator');
   const [incidents, setIncidents] = useState(INITIAL_INCIDENTS);
+  const { addToast }              = useToast();
 
-  // Subscribe to Firestore real-time feed when Firebase is configured
+  // Global error monitoring
+  useEffect(() => {
+    const handleGlobalError = (event) => {
+      console.error('[Global Error Alert]:', event.error);
+      addToast(`System Error: ${event.message}`, 'error', 7000);
+    };
+
+    const handlePromiseRejection = (event) => {
+      console.error('[Unhandled Promise Rejection]:', event.reason);
+      addToast(`Network/API Failure: ${event.reason?.message || 'Check connection'}`, 'error', 7000);
+    };
+
+    window.addEventListener('error', handleGlobalError);
+    window.addEventListener('unhandledrejection', handlePromiseRejection);
+
+    if (!config.gemini.isConfigured) {
+      addToast('Gemini AI in simulation mode. Add API key for live parsing.', 'info');
+    }
+    if (!config.firebase.isConfigured) {
+      addToast('Firestore disconnected. Incidents will not persist.', 'error');
+    }
+
+    return () => {
+      window.removeEventListener('error', handleGlobalError);
+      window.removeEventListener('unhandledrejection', handlePromiseRejection);
+    };
+  }, [addToast]);
+
+  // Subscribe to Firestore real-time feed
   useEffect(() => {
     if (!isFirebaseConfigured) return;
     const unsub = subscribeToIncidents((liveIncidents) => {
-      if (liveIncidents.length > 0) setIncidents(liveIncidents);
+      if (liveIncidents.length > 0) {
+        setIncidents(liveIncidents);
+        addToast(`Synchronized ${liveIncidents.length} incidents from Cloud HQ`, 'success', 3000);
+      }
     });
     return unsub;
-  }, []);
+  }, [addToast]);
 
   const handleNewIncident = (incidentData) => {
     setIncidents(prev => [incidentData, ...prev]);
+    addToast('New tactical data ingested successfully', 'success', 4000);
   };
 
   const handleUpdateIncidentStatus = (id, newStatus, firestoreId) => {
     setIncidents(prev =>
       prev.map(inc => inc.id === id ? { ...inc, status: newStatus } : inc)
     );
-    if (firestoreId) updateFirestore(firestoreId, newStatus);
+    if (firestoreId) {
+      updateFirestore(firestoreId, newStatus);
+      addToast(`Incident status updated to ${newStatus.replace('_', ' ')}`, 'info', 2000);
+    }
   };
 
   return (
     <div className="nexus-app">
-      {/* Accessibility: keyboard skip link */}
       <a href="#main-content" className="skip-link">Skip to main content</a>
-
-      {/* Config warning banner — shows missing .env keys */}
       <ConfigBanner />
 
-      {/* View toggle */}
       <div className="demo-view-toggle" role="tablist" aria-label="Switch application view">
         <button
           id="tab-citizen"
@@ -74,5 +109,15 @@ export default function App() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <ToastProvider>
+        <ApplicationContent />
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }

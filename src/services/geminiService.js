@@ -71,36 +71,53 @@ const sanitizeInput = (text) => {
 };
 
 // ── Main export ──────────────────────────────────────────────────
-export const parseIncidentIntent = async (rawInput, inputType = 'citizen_report') => {
+export const parseIncidentIntent = async (rawInput, inputType = 'citizen_report', base64Image = null) => {
   const sanitized = sanitizeInput(rawInput);
-  if (!sanitized) throw new Error('Empty or invalid input');
+  if (!sanitized && !base64Image) throw new Error('Empty or invalid input');
 
   let parsed;
 
   if (config.gemini.isConfigured) {
-    // ── REAL GEMINI CALL ──────────────────────────────────────────
     try {
       const ai = new GoogleGenAI({ apiKey: config.gemini.apiKey });
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: [{ 
-          role: 'user', 
-          parts: [{ text: `[INPUT_MODE: ${inputType.toUpperCase()}]\n\n${SYSTEM_PROMPT}\n\nData Ingest: "${sanitized}"` }] 
-        }],
+      const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+      const parts = [
+        { text: `[INPUT_MODE: ${inputType.toUpperCase()}]\n\n${SYSTEM_PROMPT}\n\nData Ingest: "${sanitized}"` }
+      ];
+
+      // ── Multimodal Part: Add image if present 
+      if (base64Image) {
+        parts.push({
+          inlineData: {
+            mimeType: 'image/jpeg',
+            data: base64Image.split(',')[1] || base64Image // handle full data URI or just raw string
+          }
+        });
+      }
+
+      const response = await model.generateContent({
+        contents: [{ role: 'user', parts }],
         generationConfig: {
           responseMimeType: 'application/json',
           responseSchema:   INCIDENT_SCHEMA,
         },
       });
       parsed = JSON.parse(response.text());
-      console.log(`[Nexus Engine ✓] Structured data extracted:`, parsed);
+      console.log(`[Nexus Engine Multimodal ✓] Success:`, parsed);
     } catch (err) {
-      // Fallback: flag for manual triage but don't crash
+      let errorMessage = 'AI Triage Engine Error';
+      if (err.message.includes('429')) errorMessage = 'Gemini Quota Exceeded (429)';
+      if (err.message.includes('401') || err.message.includes('403')) errorMessage = 'Gemini Auth Failure (401/403)';
+      if (err.message.includes('fetch')) errorMessage = 'Network connectivity issue reaching Gemini';
+
       console.error('[Gemini ✗] API call failed, routing to manual triage:', err.message);
+      
+      // Still return a valid object to prevent UI crash, but with a warning
       parsed = {
         ...(LOCAL_FALLBACK(sanitized)),
-        intent:     'UNPROCESSED — MANUAL TRIAGE REQUIRED',
-        action:     'AI parsing failed. Raw input forwarded to operator for manual review.',
+        intent:     `[ERR: ${errorMessage}] — MANUAL TRIAGE REQUIRED`,
+        action:     `AI parsing failed (${err.message}). Raw input forwarded to operator for manual review.`,
         severity:   'critical',
         confidence: 0,
       };
