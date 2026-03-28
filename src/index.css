@@ -916,3 +916,91 @@ dl.gemini-analysis dd { margin: 0; }
   border-top: 1px solid rgba(245, 158, 11, 0.1);
 }
 .config-banner-hint code { color: #a16207; }
+
+/* ====================================================
+   GOOGLE MAPS & TRANSLATE STYLES
+==================================================== */
+
+.google-map-canvas {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+}
+
+.map-mode-badge {
+  font-size: 0.65rem;
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface-variant);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.map-mode-badge.live {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.map-legend {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  background: var(--md-sys-color-surface-container-highest);
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  box-shadow: var(--md-elevation-2);
+  z-index: 10;
+  border: 1px solid var(--md-sys-color-surface-variant);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid #fff;
+}
+
+.translate-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-secondary-container);
+  padding: 0.2rem 0.6rem;
+  border-radius: 50px;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+.translation-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--md-sys-color-on-surface-variant);
+  background: var(--md-sys-color-surface-container-high);
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  margin-top: 0.75rem;
+  border-left: 3px solid var(--md-sys-color-primary);
+}
+
+.translation-notice strong {
+  color: var(--md-sys-color-primary);
+}

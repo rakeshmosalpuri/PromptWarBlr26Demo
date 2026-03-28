@@ -57,6 +57,18 @@ export default function ConfigBanner() {
               <span><strong>Firebase</strong> — Connected. Real-time sync & auth active.</span>
             </div>
           )}
+          {config.maps.isConfigured && (
+            <div className="config-item config-ok">
+              <CheckCircle2 size={14} aria-hidden="true"/>
+              <span><strong>Google Maps</strong> — Connected. Live tactical map active.</span>
+            </div>
+          )}
+          {config.translate.isConfigured && (
+            <div className="config-item config-ok">
+              <CheckCircle2 size={14} aria-hidden="true"/>
+              <span><strong>Google Translate</strong> — Connected. Auto-translation active.</span>
+            </div>
+          )}
 
           {/* Show what's MISSING */}
           {missing.map((item, i) => (

@@ -8,11 +8,21 @@ const FB_DOMAIN    = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
 const FB_BUCKET    = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
 const FB_SENDER    = import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID;
 const FB_APP       = import.meta.env.VITE_FIREBASE_APP_ID;
+const MAPS_KEY     = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+const TRANSLATE_KEY= import.meta.env.VITE_GOOGLE_TRANSLATE_API_KEY;
 
 export const config = {
   gemini: {
     apiKey:        GEMINI_KEY,
     isConfigured:  !!GEMINI_KEY,
+  },
+  maps: {
+    apiKey:        MAPS_KEY,
+    isConfigured:  !!MAPS_KEY,
+  },
+  translate: {
+    apiKey:        TRANSLATE_KEY,
+    isConfigured:  !!TRANSLATE_KEY,
   },
   firebase: {
     apiKey:           FIREBASE_KEY,
@@ -33,9 +43,29 @@ export const getMissingConfigs = () => {
     missing.push({
       service: 'Gemini AI',
       key:     'VITE_GEMINI_API_KEY',
-      impact:  'AI intent parsing is running in simulation mode',
+      impact:  'AI intent parsing running in simulation mode',
       link:    'https://aistudio.google.com/apikey',
       linkText: 'Get key →',
+    });
+  }
+
+  if (!config.maps.isConfigured) {
+    missing.push({
+      service: 'Google Maps',
+      key:     'VITE_GOOGLE_MAPS_API_KEY',
+      impact:  'Tactical map using CSS simulation',
+      link:    'https://console.cloud.google.com/apis/library/maps-javascript-api',
+      linkText: 'Enable Maps API →',
+    });
+  }
+
+  if (!config.translate.isConfigured) {
+    missing.push({
+      service: 'Google Translate',
+      key:     'VITE_GOOGLE_TRANSLATE_API_KEY',
+      impact:  'Auto-translation disabled — English only',
+      link:    'https://console.cloud.google.com/apis/library/translate.googleapis.com',
+      linkText: 'Enable Translate API →',
     });
   }
 
