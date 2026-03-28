@@ -4,6 +4,18 @@
 
 ---
 
+### 🎯 Problem Statement Alignment
+
+**The Challenge:**
+> *"Build a Gemini-powered App that acts as a universal bridge between human intent and complex systems... taking unstructured, messy, real-world inputs and converting them into structured, verified, and life-saving actions."*
+
+**Our Solution:**
+1.  **The Universal Bridge:** Our **Multimodal Nexus Intake** accepts photos, voice, medical logs, and distress text, acting as the entry point for human chaos.
+2.  **Human Intent to System-Logic:** Using **Gemini 2.5 Flash**, RESQ isolates the core intent from messy inputs (e.g., extracting urgent surgical needs from a block of medical history) and maps it to a rigid **JSON Tactical Schema**.
+3.  **Life-Saving Actions:** These structured facts are instantly routed to a **Google Maps Tactical Bridge**, where they are converted into verified rescue missions, evac routes, and medical alerts.
+
+---
+
 ### 🧠 Core Intelligence System
 *   **Multimodal AI (Gemini 2.5 Flash):** The engine doesn't just read text; it "sees." It ingests citizen distress signals, medical history documents, technical log dumps, and real-time photos of structural damage to perform automated triage.
 *   **Global Translation Engine:** Integrated **Google Cloud Translation API** auto-detects 100+ languages and translates them into English as a pre-processor for the AI engine, ensuring universal support.
