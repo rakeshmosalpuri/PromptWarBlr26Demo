@@ -1,53 +1,80 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CitizenView from './components/citizen/CitizenView';
 import OperatorDashboard from './components/operator/OperatorDashboard';
+import OperatorAuthGate from './components/shared/OperatorAuthGate';
 import { INITIAL_INCIDENTS } from './services/mockData';
+import { subscribeToIncidents, updateIncidentStatus as updateFirestore, isFirebaseConfigured } from './services/firebase';
 import './index.css';
 
 export default function App() {
-  const [view, setView] = useState('operator'); // 'citizen' or 'operator'
+  const [view, setView]         = useState('operator');
   const [incidents, setIncidents] = useState(INITIAL_INCIDENTS);
 
-  // Called by CitizenView when the Gemini Service successfully parses an intent
+  // Google Services Priority 2: Subscribe to Firestore real-time feed
+  useEffect(() => {
+    if (!isFirebaseConfigured) return;
+    const unsub = subscribeToIncidents((liveIncidents) => {
+      if (liveIncidents.length > 0) setIncidents(liveIncidents);
+    });
+    return unsub; // clean up on unmount
+  }, []);
+
   const handleNewIncident = (incidentData) => {
+    // Always optimistically update local state for instant UX feedback
+    // Firestore write already happens inside geminiService.parseIncidentIntent
     setIncidents(prev => [incidentData, ...prev]);
   };
 
-  // Called by OperatorDashboard when executing logistics
-  const handleUpdateIncidentStatus = (id, newStatus) => {
-    setIncidents(prev => 
-      prev.map(inc => 
-        inc.id === id ? { ...inc, status: newStatus } : inc
-      )
+  const handleUpdateIncidentStatus = (id, newStatus, firestoreId) => {
+    // Update local state immediately
+    setIncidents(prev =>
+      prev.map(inc => inc.id === id ? { ...inc, status: newStatus } : inc)
     );
+    // Persist to Firestore if connected
+    if (firestoreId) updateFirestore(firestoreId, newStatus);
   };
 
   return (
     <div className="nexus-app">
-      {/* Structural Toggle bridging the two disconnected physical worlds */}
-      <div className="demo-view-toggle">
-        <button 
-          className={view === 'citizen' ? 'active' : ''} 
+      {/* Skip navigation link for keyboard/screen-reader users — Accessibility Priority */}
+      <a href="#main-content" className="skip-link">Skip to main content</a>
+
+      {/* Demo Toggle */}
+      <div className="demo-view-toggle" role="tablist" aria-label="Switch application view">
+        <button
+          id="tab-citizen"
+          role="tab"
+          aria-selected={view === 'citizen'}
+          aria-controls="main-content"
+          className={view === 'citizen' ? 'active' : ''}
           onClick={() => setView('citizen')}
         >
-          Citizen App (Distress)
+          Citizen App
         </button>
-        <button 
-          className={view === 'operator' ? 'active' : ''} 
+        <button
+          id="tab-operator"
+          role="tab"
+          aria-selected={view === 'operator'}
+          aria-controls="main-content"
+          className={view === 'operator' ? 'active' : ''}
           onClick={() => setView('operator')}
         >
-          Disaster Command (HQ)
+          Command HQ
         </button>
       </div>
 
-      {view === 'citizen' ? (
-        <CitizenView onNewIncident={handleNewIncident} />
-      ) : (
-        <OperatorDashboard 
-          incidents={incidents} 
-          onUpdateStatus={handleUpdateIncidentStatus} 
-        />
-      )}
+      <main id="main-content" tabIndex={-1}>
+        {view === 'citizen' ? (
+          <CitizenView onNewIncident={handleNewIncident} />
+        ) : (
+          <OperatorAuthGate>
+            <OperatorDashboard
+              incidents={incidents}
+              onUpdateStatus={handleUpdateIncidentStatus}
+            />
+          </OperatorAuthGate>
+        )}
+      </main>
     </div>
   );
 }
