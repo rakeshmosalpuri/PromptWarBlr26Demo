@@ -777,3 +777,142 @@ dl.gemini-analysis dd { margin: 0; }
   transition: all 0.2s;
 }
 .google-signin-btn:hover { filter: brightness(1.1); box-shadow: var(--md-elevation-3); }
+
+/* ====================================================
+   CONFIG BANNER — Missing Service Warnings
+==================================================== */
+.config-banner {
+  background: #1c1400;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+  font-size: 0.85rem;
+  z-index: 200;
+  position: relative;
+}
+
+.config-banner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 1.25rem;
+  color: #f59e0b;
+  font-weight: 600;
+  gap: 1rem;
+}
+
+.config-banner-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.config-banner-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.config-banner-toggle,
+.config-banner-close {
+  background: transparent;
+  border: none;
+  color: #f59e0b;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+.config-banner-toggle:hover,
+.config-banner-close:hover { opacity: 1; background: rgba(245, 158, 11, 0.1); }
+
+.config-banner-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0 1.25rem 1rem;
+}
+
+.config-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  line-height: 1.5;
+}
+
+.config-ok {
+  background: rgba(16, 185, 129, 0.08);
+  color: #10b981;
+  font-weight: 500;
+}
+
+.config-missing {
+  background: rgba(245, 158, 11, 0.08);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.15);
+}
+
+.config-item-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.config-item-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.config-item-header strong { color: #fde68a; }
+
+.config-item-impact {
+  font-size: 0.8rem;
+  color: #92400e;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+.config-missing-keys {
+  font-size: 0.8rem;
+  color: #a16207;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.key-pill {
+  background: rgba(0,0,0,0.3);
+  color: #fbbf24;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.75rem;
+}
+
+.config-setup-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--md-sys-color-primary);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-decoration: none;
+  margin-top: 0.1rem;
+}
+.config-setup-link:hover { text-decoration: underline; }
+
+.config-banner-hint {
+  font-size: 0.75rem;
+  color: #78716c;
+  padding-top: 0.25rem;
+  border-top: 1px solid rgba(245, 158, 11, 0.1);
+}
+.config-banner-hint code { color: #a16207; }
