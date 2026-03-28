@@ -76,11 +76,10 @@ export default function CitizenView({ onNewIncident }) {
   };
 
   return (
-    <div className="citizen-view" role="region" aria-label="Universal NEXUS Ingest">
+    <div className="citizen-view" role="region" aria-label="Universal RESQ Ingest">
       <div className="citizen-header">
         <h1 id="citizen-title">
-          NEX<span style={{ color: 'var(--md-sys-color-primary)' }}>US</span>
-          <span className="sr-only">RESQ NEXUS</span>
+          RES<span style={{ color: 'var(--md-sys-color-primary)' }}>Q</span>
         </h1>
         <p id="citizen-subtitle">Universal Logistics Ingest Portal</p>
       </div>
@@ -171,7 +170,7 @@ export default function CitizenView({ onNewIncident }) {
         ) : (
           <div className="success-state">
             <CheckCircle2 size={64} className="success-icon" />
-            <h2>Nexus Resolved</h2>
+            <h2>RESQ Resolved</h2>
             <p>Intelligence has been extracted. Actionable logistics updated at Command HQ.</p>
           </div>
         )}

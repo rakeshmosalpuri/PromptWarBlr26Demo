@@ -18,7 +18,7 @@ const INCIDENT_SCHEMA = {
   required: ['domain', 'intent', 'confidence', 'action', 'severity'],
 };
 
-const SYSTEM_PROMPT = `You are RESQ NEXUS, a universal disaster and medical triage engine. 
+const SYSTEM_PROMPT = `You are RESQ AI, a universal disaster and medical triage engine. 
 Your task is to ingest UNSTRUCTURED, MESSY, REAL-WORLD data and extract structured emergency logistics.
 
 INPUT TYPES you must handle include:
